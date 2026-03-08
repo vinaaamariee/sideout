@@ -8,7 +8,7 @@ export default function HomePage() {
         <div className="text-center">
           <div className="text-5xl mb-4">🏐</div>
           <div className="text-2xl font-black tracking-widest text-white">
-            VOLLEY<span className="text-sky-400">TRACK</span> PRO
+            SIDE<span className="text-sky-400">OUT</span>
           </div>
           <div className="text-slate-500 text-sm mt-2 tracking-wider">Loading match engine...</div>
         </div>
