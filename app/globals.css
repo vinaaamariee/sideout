@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-barlow: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0e1a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+}
+
+@layer components {
+  .btn-action {
+    @apply cursor-pointer rounded-lg font-bold tracking-wide uppercase transition-all duration-150;
+    @apply active:scale-95 hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-kill {
+    @apply bg-green-500/20 text-green-400 border border-green-500/40 hover:bg-green-500/30;
+  }
+
+  .btn-error {
+    @apply bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/30;
+  }
+
+  .btn-neutral {
+    @apply bg-slate-700/50 text-slate-400 border border-slate-600/40 hover:bg-slate-600/50;
+  }
+
+  .card {
+    @apply bg-court-card border border-court-border rounded-xl;
+  }
+
+  .stat-badge {
+    @apply inline-flex items-center justify-center rounded-md font-bold text-xs px-2 py-0.5;
+  }
+
+  .court-cell {
+    @apply rounded-xl border-2 border-slate-700/30 flex flex-col items-center justify-center
+           cursor-pointer transition-all duration-200 select-none;
+  }
+
+  .court-cell:hover {
+    @apply border-slate-500/60 scale-105;
+  }
+
+  .court-cell.selected {
+    @apply border-white shadow-[0_0_20px_rgba(255,255,255,0.2)];
+  }
+
+  .log-entry {
+    @apply px-3 py-2 rounded-lg text-xs border-l-4 mb-1;
+  }
+
+  .pog-bar {
+    @apply h-1.5 rounded-full transition-all duration-500;
+  }
+
+  .tab-btn {
+    @apply px-4 py-2 rounded-lg font-bold text-xs tracking-widest uppercase transition-all duration-200;
+  }
+}
+
+@layer utilities {
+  .text-glow-blue {
+    text-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+  }
+
+  .animate-shimmer {
+    background-size: 200%;
+    animation: shimmer 3s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+}
