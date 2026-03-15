@@ -1,164 +1,199 @@
 "use client";
 
 import { useState } from "react";
-import { useAuthStore, UserRole } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useThemeStore } from "@/store/useThemeStore";
 
-type Step = "select" | "login";
+type AuthMode = "login" | "signup";
 
-const ROLE_INFO = {
-    coaching_staff: {
-        label: "Coaching Staff",
-        icon: "📋",
-        desc: "Full access: record stats, manage players & match",
-        requiresLogin: true,
-        color: "#0ea5e9",
-    },
-    referee: {
-        label: "Referee",
-        icon: "🦺",
-        desc: "Score-keeping & match control access",
-        requiresLogin: true,
-        color: "#f97316",
-    },
-    player: {
-        label: "Player",
-        icon: "🏐",
-        desc: "View-only: watch live stats & leaderboard",
-        requiresLogin: false,
-        color: "#10b981",
-    },
-    spectator: {
-        label: "Spectator",
-        icon: "👁️",
-        desc: "View-only: follow the match live",
-        requiresLogin: false,
-        color: "#a855f7",
-    },
-} as const;
-
-type SelectableRole = keyof typeof ROLE_INFO;
-
-export default function LoginScreen() {
-    const { login, enterAsGuest } = useAuthStore();
-    const [step, setStep] = useState<Step>("select");
-    const [selectedRole, setSelectedRole] = useState<SelectableRole | null>(null);
+export default function LoginScreen({ onBack }: { onBack: () => void }) {
+    const { signup, login } = useAuthStore();
+    const { theme, toggleTheme } = useThemeStore();
+    const [mode, setMode] = useState<AuthMode>("signup");
+    const [name, setName] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
 
-    function handleRoleClick(role: SelectableRole) {
-        const info = ROLE_INFO[role];
-        if (!info.requiresLogin) {
-            enterAsGuest(role as "player" | "spectator");
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        setError("");
+
+        if (!name.trim() || !password) {
+            setError("Please fill in all fields.");
             return;
         }
-        setSelectedRole(role);
-        setPassword("");
-        setError("");
-        setStep("login");
-    }
 
-    function handleLogin(e: React.FormEvent) {
-        e.preventDefault();
-        if (!selectedRole) return;
-        const ok = login(selectedRole as "coaching_staff" | "referee", password);
-        if (!ok) {
-            setError("Incorrect password. Please try again.");
+        if (mode === "signup") {
+            if (password !== confirmPassword) {
+                setError("Passwords do not match.");
+                return;
+            }
+            if (password.length < 4) {
+                setError("Password must be at least 4 characters.");
+                return;
+            }
+            const result = signup(name, password);
+            if (!result.ok) setError(result.error || "Signup failed.");
+        } else {
+            const result = login(name, password);
+            if (!result.ok) setError(result.error || "Login failed.");
         }
     }
 
     return (
-        <div className="min-h-screen bg-court-bg flex flex-col items-center justify-center p-6">
-            {/* Logo */}
-            <div className="text-center mb-10">
-                <div className="text-6xl mb-3">🏐</div>
-                <div className="text-3xl font-black tracking-widest text-white">
-                    SIDE<span className="text-sky-400">OUT</span>
-                </div>
-                <div className="text-slate-500 text-sm mt-2 tracking-wider">
-                    Select your role to continue
-                </div>
+        <div className="min-h-screen bg-themed flex flex-col items-center justify-center p-6 relative transition-colors duration-300">
+            {/* Background decorations */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full opacity-10"
+                    style={{ background: "radial-gradient(circle, #0ea5e9, transparent)" }} />
+                <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-10"
+                    style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
             </div>
 
-            {step === "select" && (
-                <div className="w-full max-w-md grid grid-cols-1 gap-4">
-                    {(Object.keys(ROLE_INFO) as SelectableRole[]).map((role) => {
-                        const info = ROLE_INFO[role];
-                        return (
-                            <button
-                                key={role}
-                                onClick={() => handleRoleClick(role)}
-                                className="flex items-center gap-4 p-5 rounded-2xl border border-slate-700 bg-slate-800/80 
-                           hover:border-sky-500 hover:bg-slate-700/80 transition-all text-left group"
-                            >
-                                <span className="text-3xl">{info.icon}</span>
-                                <div className="flex-1">
-                                    <div
-                                        className="font-black text-base tracking-wide"
-                                        style={{ color: info.color }}
-                                    >
-                                        {info.label}
-                                        {info.requiresLogin && (
-                                            <span className="ml-2 text-xs text-slate-500 font-normal">
-                                                🔒 Login required
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-slate-400 text-xs mt-0.5">{info.desc}</div>
-                                </div>
-                                <span className="text-slate-600 group-hover:text-slate-400 text-xl">›</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
+            {/* Theme toggle */}
+            <button
+                onClick={toggleTheme}
+                className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center
+                         transition-all duration-300 hover:scale-110 z-10"
+                style={{
+                    background: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+                    color: theme === "dark" ? "#fbbf24" : "#6366f1",
+                }}
+            >
+                <span className="text-xl">{theme === "dark" ? "☀️" : "🌙"}</span>
+            </button>
 
-            {step === "login" && selectedRole && (
-                <div className="w-full max-w-sm">
-                    <button
-                        onClick={() => setStep("select")}
-                        className="text-slate-500 hover:text-white text-sm mb-6 flex items-center gap-1 transition-colors"
+            <div className="relative z-10 w-full max-w-sm animate-fade-in">
+                {/* Back button */}
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-1 text-sm mb-6 transition-colors"
+                    style={{ color: "var(--text-muted)" }}
+                >
+                    <span>‹</span> Back to Welcome
+                </button>
+
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-4"
+                        style={{
+                            background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+                            boxShadow: "0 0 40px rgba(14, 165, 233, 0.2)",
+                        }}
                     >
-                        ‹ Back
-                    </button>
+                        📋
+                    </div>
+                    <h2 className="text-2xl font-black tracking-widest" style={{ color: "var(--text-primary)" }}>
+                        OFFICIATING OFFICIAL
+                    </h2>
+                    <p className="text-xs mt-1 tracking-wider" style={{ color: "var(--text-muted)" }}>
+                        {mode === "signup"
+                            ? "Create your account to get full access"
+                            : "Log in with your credentials"}
+                    </p>
+                </div>
 
-                    <div className="card p-8">
-                        <div className="text-center mb-6">
-                            <div className="text-4xl mb-2">{ROLE_INFO[selectedRole].icon}</div>
-                            <div
-                                className="font-black text-xl tracking-wide"
-                                style={{ color: ROLE_INFO[selectedRole].color }}
-                            >
-                                {ROLE_INFO[selectedRole].label}
-                            </div>
-                            <div className="text-slate-500 text-xs mt-1">Enter your password to continue</div>
-                        </div>
+                {/* Mode toggle */}
+                <div className="flex rounded-xl overflow-hidden mb-6"
+                    style={{
+                        background: theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+                        border: `1px solid ${theme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                    }}
+                >
+                    {(["signup", "login"] as const).map((m) => (
+                        <button
+                            key={m}
+                            onClick={() => { setMode(m); setError(""); }}
+                            className="flex-1 py-2.5 text-xs font-black tracking-widest uppercase transition-all duration-200"
+                            style={{
+                                background: mode === m
+                                    ? "linear-gradient(135deg, #0ea5e9, #6366f1)"
+                                    : "transparent",
+                                color: mode === m ? "#fff" : "var(--text-muted)",
+                            }}
+                        >
+                            {m === "signup" ? "SIGN UP" : "LOG IN"}
+                        </button>
+                    ))}
+                </div>
 
-                        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="card p-6 flex flex-col gap-4">
+                    <div>
+                        <label className="text-xs font-black tracking-widest uppercase block mb-1.5"
+                            style={{ color: "var(--text-muted)" }}>
+                            Name
+                        </label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => { setName(e.target.value); setError(""); }}
+                            placeholder="Enter your name"
+                            className="themed-input w-full"
+                            autoFocus
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-black tracking-widest uppercase block mb-1.5"
+                            style={{ color: "var(--text-muted)" }}>
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                            placeholder="Enter password"
+                            className="themed-input w-full"
+                        />
+                    </div>
+
+                    {mode === "signup" && (
+                        <div>
+                            <label className="text-xs font-black tracking-widest uppercase block mb-1.5"
+                                style={{ color: "var(--text-muted)" }}>
+                                Confirm Password
+                            </label>
                             <input
                                 type="password"
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                                className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white 
-                           placeholder-slate-600 focus:outline-none focus:border-sky-500 text-sm"
-                                autoFocus
+                                value={confirmPassword}
+                                onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+                                placeholder="Confirm password"
+                                className="themed-input w-full"
                             />
+                        </div>
+                    )}
 
-                            {error && (
-                                <div className="text-red-400 text-xs text-center">{error}</div>
-                            )}
+                    {error && (
+                        <div className="text-red-400 text-xs text-center font-bold">{error}</div>
+                    )}
 
-                            <button
-                                type="submit"
-                                className="btn-action py-3 font-black tracking-widest text-white rounded-xl"
-                                style={{ background: ROLE_INFO[selectedRole].color }}
-                            >
-                                LOGIN
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+                    <button
+                        type="submit"
+                        className="py-3 rounded-xl font-black tracking-widest text-white text-sm
+                                 transition-all duration-200 hover:brightness-110 active:scale-95"
+                        style={{
+                            background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+                            boxShadow: "0 4px 16px rgba(14, 165, 233, 0.25)",
+                        }}
+                    >
+                        {mode === "signup" ? "CREATE ACCOUNT" : "LOG IN"}
+                    </button>
+                </form>
+
+                <p className="text-center text-xs mt-4 tracking-wider" style={{ color: "var(--text-muted)" }}>
+                    {mode === "signup"
+                        ? "Already have an account? "
+                        : "Don't have an account? "}
+                    <button
+                        onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setError(""); }}
+                        className="text-sky-400 font-bold hover:text-sky-300 transition-colors"
+                    >
+                        {mode === "signup" ? "Log in" : "Sign up"}
+                    </button>
+                </p>
+            </div>
         </div>
     );
 }

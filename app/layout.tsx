@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed } from "next/font/google";
+import ThemeProvider from "@/components/ThemeProvider";
 import "./globals.css";
 
 const barlow = Barlow_Condensed({
@@ -24,9 +25,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={barlow.variable}>
-      <body className="bg-court-bg text-slate-200 font-display antialiased">
-        {children}
+    <html lang="en" className={`${barlow.variable} dark`}>
+      <body className="bg-themed text-themed font-display antialiased transition-colors duration-300">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

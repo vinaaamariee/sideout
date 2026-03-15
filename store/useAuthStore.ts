@@ -1,45 +1,71 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-export type UserRole = "coaching_staff" | "referee" | "player" | "spectator" | null;
+export type UserRole = "official" | "viewer" | null;
 
-// Hardcoded PINs – change these as needed
-const CREDENTIALS: Record<"coaching_staff" | "referee", string> = {
-    coaching_staff: "coach123",
-    referee: "ref123",
-};
+interface RegisteredUser {
+    name: string;
+    password: string;
+}
 
 interface AuthStore {
     role: UserRole;
-    login: (role: "coaching_staff" | "referee", password: string) => boolean;
-    enterAsGuest: (role: "player" | "spectator") => void;
+    userName: string | null;
+    registeredUsers: RegisteredUser[];
+    signup: (name: string, password: string) => { ok: boolean; error?: string };
+    login: (name: string, password: string) => { ok: boolean; error?: string };
+    enterAsViewer: () => void;
     logout: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             role: null,
+            userName: null,
+            registeredUsers: [],
 
-            login: (role, password) => {
-                if (CREDENTIALS[role] === password) {
-                    set({ role });
-                    return true;
+            signup: (name, password) => {
+                const trimmed = name.trim();
+                if (!trimmed || !password) {
+                    return { ok: false, error: "Name and password are required." };
                 }
-                return false;
+                const existing = get().registeredUsers.find(
+                    (u) => u.name.toLowerCase() === trimmed.toLowerCase()
+                );
+                if (existing) {
+                    return { ok: false, error: "An account with this name already exists. Please log in." };
+                }
+                set((s) => ({
+                    registeredUsers: [...s.registeredUsers, { name: trimmed, password }],
+                    role: "official",
+                    userName: trimmed,
+                }));
+                return { ok: true };
             },
 
-            enterAsGuest: (role) => set({ role }),
+            login: (name, password) => {
+                const trimmed = name.trim();
+                const user = get().registeredUsers.find(
+                    (u) => u.name.toLowerCase() === trimmed.toLowerCase() && u.password === password
+                );
+                if (!user) {
+                    return { ok: false, error: "Invalid credentials. Please try again." };
+                }
+                set({ role: "official", userName: user.name });
+                return { ok: true };
+            },
 
-            logout: () => set({ role: null }),
+            enterAsViewer: () => set({ role: "viewer", userName: null }),
+
+            logout: () => set({ role: null, userName: null }),
         }),
         {
-            name: "volleytrack-auth",
+            name: "sideout-auth",
             storage: createJSONStorage(() => localStorage),
         }
     )
 );
 
 /** Returns true if the current role may record stats / manage the match */
-export const canEditMatch = (role: UserRole) =>
-    role === "coaching_staff" || role === "referee";
+export const canEditMatch = (role: UserRole) => role === "official";
