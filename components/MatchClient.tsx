@@ -13,9 +13,10 @@ import PogLeaderboard from "@/components/panels/PogLeaderboard";
 import StatsView from "@/components/analytics/StatsView";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
 import PostGameScreen from "@/components/analytics/PostGameScreen";
+import AboutView from "@/components/analytics/AboutView";
 import PlayerChip from "@/components/court/PlayerChip";
 
-type ViewTab = "live" | "stats" | "analytics";
+type ViewTab = "live" | "stats" | "analytics" | "about";
 
 const ROLE_LABELS: Record<string, string> = {
   coaching_staff: "📋 Coaching Staff",
@@ -193,6 +194,10 @@ export default function MatchClient() {
 
         {view === "analytics" && (
           <AnalyticsView teams={game.teams} allPlayers={allPlayers} log={game.log} />
+        )}
+
+        {view === "about" && (
+          <AboutView />
         )}
       </main>
     </div>

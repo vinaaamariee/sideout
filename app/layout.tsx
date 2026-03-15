@@ -10,7 +10,7 @@ const barlow = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "VolleyTrack Pro — Live e-Scoresheet & Analytics",
+  title: "SideOut — Live e-Scoresheet & Analytics",
   description: "Real-time volleyball scoring, player statistics, and match analytics",
   icons: { icon: "/favicon.ico" },
 };

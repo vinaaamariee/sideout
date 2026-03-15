@@ -35,7 +35,7 @@ export default function PostGameScreen({ game, allPlayers, onReset }: PostGameSc
       <div className="bg-[#0f1629] border-b border-court-border py-4 px-6 flex items-center gap-3">
         <span className="text-2xl">🏐</span>
         <span className="text-xl font-black tracking-widest text-white">
-          VOLLEY<span className="text-sky-400">TRACK</span> PRO
+          SIDE<span className="text-sky-400">OUT</span>
         </span>
         <span className="ml-4 text-sm text-slate-500 font-bold tracking-wider">FINAL REPORT</span>
       </div>

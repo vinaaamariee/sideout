@@ -1,6 +1,6 @@
 "use client";
 
-type ViewTab = "live" | "stats" | "analytics";
+type ViewTab = "live" | "stats" | "analytics" | "about";
 
 interface HeaderProps {
   view: ViewTab;
@@ -9,9 +9,10 @@ interface HeaderProps {
 
 export default function Header({ view, onViewChange }: HeaderProps) {
   const tabs: { id: ViewTab; label: string; icon: string }[] = [
-    { id: "live",      label: "Live",      icon: "⚡" },
-    { id: "stats",     label: "Stats",     icon: "📊" },
+    { id: "live", label: "Live", icon: "⚡" },
+    { id: "stats", label: "Stats", icon: "📊" },
     { id: "analytics", label: "Analytics", icon: "📈" },
+    { id: "about", label: "About", icon: "ℹ️" },
   ];
 
   return (
@@ -24,8 +25,7 @@ export default function Header({ view, onViewChange }: HeaderProps) {
             🏐
           </div>
           <span className="text-lg font-black tracking-widest text-white">
-            VOLLEY<span className="text-sky-400">TRACK</span>
-            <span className="text-slate-500 text-sm font-bold ml-1">PRO</span>
+            SIDE<span className="text-sky-400">OUT</span>
           </span>
         </div>
 

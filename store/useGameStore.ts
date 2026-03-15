@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { nanoid } from "nanoid"; // inline implementation below
-import type { GameState, TeamKey, ActionType, LogEntry } from "@/types";
+import type { GameState, TeamKey, ActionType, LogEntry, PlayerRole } from "@/types";
+import { emptyStats } from "@/types";
 import {
   applyStatToPlayer, isPointAction, scoringTeam,
   rotateTeam, checkSetWin, buildDefaultHomeTeam, buildDefaultAwayTeam,
@@ -35,6 +36,13 @@ interface GameStore {
   undo: () => void;
   toggleLibero: (teamKey: TeamKey, positionIndex: number) => void;
   resetMatch: () => void;
+  // Team / player setup
+  updateTeamName: (teamKey: TeamKey, name: string) => void;
+  updateTeamColor: (teamKey: TeamKey, color: string) => void;
+  addPlayer: (teamKey: TeamKey, name: string, number: number, role: PlayerRole) => void;
+  removePlayer: (teamKey: TeamKey, playerId: string) => void;
+  updatePlayer: (teamKey: TeamKey, playerId: string, name: string, number: number, role: PlayerRole) => void;
+  startMatch: () => void;
 }
 
 // ─── INITIAL GAME STATE ───────────────────────────────────────────────────────
@@ -247,6 +255,47 @@ export const useGameStore = create<GameStore>()(
             team.rotation[posIndex] = libero.id;
           }
         });
+      },
+
+      // ── Team / Player Setup ───────────────────────────────────────────────
+      updateTeamName: (teamKey, name) => set((s) => {
+        s.game.teams[teamKey].name = name;
+      }),
+
+      updateTeamColor: (teamKey, color) => set((s) => {
+        s.game.teams[teamKey].color = color;
+      }),
+
+      addPlayer: (teamKey, name, number, role) => set((s) => {
+        const id = uid();
+        s.game.teams[teamKey].players.push({ id, name, number, role, stats: emptyStats() });
+        // Auto-add to rotation if fewer than 6 non-libero starters
+        const team = s.game.teams[teamKey];
+        if (role !== "L" && team.rotation.length < 6) {
+          team.rotation.push(id);
+        }
+      }),
+
+      removePlayer: (teamKey, playerId) => set((s) => {
+        const team = s.game.teams[teamKey];
+        team.players = team.players.filter((p) => p.id !== playerId);
+        team.rotation = team.rotation.filter((id) => id !== playerId);
+        if (s.game.liberoSwap[teamKey] === playerId) {
+          s.game.liberoSwap[teamKey] = null;
+        }
+      }),
+
+      updatePlayer: (teamKey, playerId, name, number, role) => set((s) => {
+        const player = s.game.teams[teamKey].players.find((p) => p.id === playerId);
+        if (!player) return;
+        player.name = name;
+        player.number = number;
+        player.role = role;
+      }),
+
+      startMatch: () => {
+        const state = get().game;
+        createMatch(state.matchId, state.teams.home.name, state.teams.away.name, state);
       },
     })),
     {

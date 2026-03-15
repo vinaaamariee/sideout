@@ -72,7 +72,7 @@ export default function LoginScreen() {
             <div className="text-center mb-10">
                 <div className="text-6xl mb-3">🏐</div>
                 <div className="text-3xl font-black tracking-widest text-white">
-                    VOLLEY<span className="text-sky-400">TRACK</span> PRO
+                    SIDE<span className="text-sky-400">OUT</span>
                 </div>
                 <div className="text-slate-500 text-sm mt-2 tracking-wider">
                     Select your role to continue
