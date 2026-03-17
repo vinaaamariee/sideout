@@ -74,6 +74,9 @@ export async function deleteImage(
   url: string,
   type: UploadType
 ): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const bucketName = getBucketName(type)
     
@@ -129,6 +132,10 @@ export function fileToBase64(file: File): Promise<string> {
 
 // Create storage buckets (run this as admin to set up)
 export async function createStorageBuckets() {
+  if (!supabase) {
+    console.error('Supabase client not initialized')
+    return
+  }
   const { data: existingBuckets } = await supabase.storage.listBuckets()
   
   // Check if buckets already exist
