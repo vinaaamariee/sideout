@@ -8,19 +8,18 @@ import { useThemeStore } from '@/store/themeStore'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isLoading, error, clearError, initialize, isAuthenticated } = useAuthStore()
+  const { login, isLoading, error, clearError, initialize, isAuthenticated, isInitialized } = useAuthStore()
   
-  // Initialize auth on mount
   useEffect(() => {
     initialize()
   }, [initialize])
   
-  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isInitialized && isAuthenticated) {
       router.push('/dashboard')
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, isInitialized, router])
+
   const { theme, toggleTheme } = useThemeStore()
   
   const [email, setEmail] = useState('')
@@ -41,6 +40,14 @@ export default function LoginPage() {
     if (result.success) {
       router.push('/dashboard')
     }
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   return (

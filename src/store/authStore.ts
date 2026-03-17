@@ -14,6 +14,7 @@ interface AuthState {
   user: AuthUser | null
   isLoading: boolean
   isAuthenticated: boolean
+  isInitialized: boolean
   error: string | null
   
   // Actions
@@ -28,8 +29,9 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      isLoading: true,
+      isLoading: false,
       isAuthenticated: false,
+      isInitialized: false,
       error: null,
 
       initialize: async () => {
@@ -43,13 +45,15 @@ export const useAuthStore = create<AuthState>()(
             set({ 
               user, 
               isAuthenticated: !!user, 
-              isLoading: false 
+              isLoading: false,
+              isInitialized: true
             })
           } else {
             set({ 
               user: null, 
               isAuthenticated: false, 
-              isLoading: false 
+              isLoading: false,
+              isInitialized: true
             })
           }
         } catch (error) {
@@ -57,7 +61,8 @@ export const useAuthStore = create<AuthState>()(
           set({ 
             user: null, 
             isAuthenticated: false, 
-            isLoading: false 
+            isLoading: false,
+            isInitialized: true
           })
         }
 
@@ -100,7 +105,6 @@ export const useAuthStore = create<AuthState>()(
         const result = await signUp(email, password, fullName)
         
         if (result.success) {
-          // Auto-login after registration
           const loginResult = await signIn(email, password)
           if (loginResult.success) {
             const user = await getCurrentUser()
@@ -135,8 +139,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'sideout-auth-storage',
       partialize: (state) => ({ 
-        user: state.user, 
-        isAuthenticated: state.isAuthenticated 
+        user: state.user,
       }),
     }
   )
