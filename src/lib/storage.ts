@@ -35,6 +35,9 @@ export async function uploadImage(
   type: UploadType,
   entityId: string
 ): Promise<{ success: boolean; url?: string; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const bucketName = getBucketName(type)
     const folderPath = getFolderPath(type, entityId)

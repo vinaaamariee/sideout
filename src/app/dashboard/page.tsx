@@ -36,6 +36,10 @@ export default function DashboardPage() {
   }, [isAuthenticated])
 
   const fetchTeams = async () => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('teams')
@@ -50,6 +54,11 @@ export default function DashboardPage() {
   }
 
   const fetchMatches = async () => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setLoading(false)
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('matches')
@@ -69,6 +78,10 @@ export default function DashboardPage() {
   const handleCreateMatch = async () => {
     if (!selectedTeamA || !selectedTeamB || selectedTeamA === selectedTeamB) {
       alert('Please select two different teams')
+      return
+    }
+    if (!supabase) {
+      console.error('Supabase client not initialized')
       return
     }
 

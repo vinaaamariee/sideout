@@ -22,19 +22,29 @@ export default function LiveViewerPage() {
     fetchLiveMatches()
     
     // Subscribe to realtime updates
-    const channel = supabase
-      .channel('live-matches')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-        fetchLiveMatches()
-      })
-      .subscribe()
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    if (supabase) {
+      channel = supabase
+        .channel('live-matches')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+          fetchLiveMatches()
+        })
+        .subscribe()
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel && supabase) {
+        supabase.removeChannel(channel)
+      }
     }
   }, [])
 
   const fetchLiveMatches = async () => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setLoading(false)
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('matches')

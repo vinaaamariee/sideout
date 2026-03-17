@@ -57,6 +57,11 @@ export default function AnalyticsPage() {
   }, [isAuthenticated])
 
   const fetchMatches = async () => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setLoading(false)
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('matches')
