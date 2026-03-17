@@ -1,6 +1,9 @@
 'use client'
 
 import { useGameStore } from '@/store/gameStore'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Zap, Trophy, RotateCcw, Undo2, Crown, Wifi } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 export function Scoreboard() {
   const { 
@@ -20,180 +23,314 @@ export function Scoreboard() {
     undoStack
   } = useGameStore()
 
+  const [scoreFlash, setScoreFlash] = useState<'team_a' | 'team_b' | null>(null)
+  const [isLive, setIsLive] = useState(true)
+
+  const handleScore = (team: 'team_a' | 'team_b') => {
+    setScoreFlash(team)
+    addScore(team)
+    setTimeout(() => setScoreFlash(null), 500)
+  }
+
   const getSetScore = (set: number): { teamA: number; teamB: number } => {
-    // For now, return current scores - in a full implementation, 
-    // this would track set scores separately
     if (set === currentSet) {
       return { teamA: teamAScore, teamB: teamBScore }
     }
     return { teamA: 0, teamB: 0 }
   }
 
-  const isSetComplete = (set: number): boolean => {
-    const score = getSetScore(set)
-    const isFinalSet = set === 5
-    const targetScore = isFinalSet ? 15 : 25
-    
-    if (score.teamA >= targetScore || score.teamB >= targetScore) {
-      return Math.abs(score.teamA - score.teamB) >= 2
-    }
-    return false
-  }
-
-  const handleScore = (team: 'team_a' | 'team_b') => {
-    addScore(team)
-  }
-
   const handleRotate = () => {
     rotate()
   }
 
+  // Team colors with glow effects
+  const teamAColor = teamA?.color || '#3b82f6'
+  const teamBColor = teamB?.color || '#ef4444'
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-700"
+    >
+      {/* Animated Header with Live Badge */}
+      <div className="relative px-6 py-4 bg-gradient-to-r from-gray-900/90 to-gray-800/90">
+        {/* Live Badge */}
+        <motion.div 
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          className="absolute top-4 left-4 flex items-center gap-2"
+        >
+          <motion.div
+            animate={{ 
+              boxShadow: ['0 0 0 0 rgba(239, 68, 68, 0.7)', '0 0 0 8px rgba(239, 68, 68, 0)', '0 0 0 0 rgba(239, 68, 68, 0)']
+            }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="flex items-center gap-1.5 px-3 py-1 bg-red-500 rounded-full"
+          >
+            <Wifi className="w-3 h-3 text-white animate-pulse" />
+            <span className="text-xs font-bold text-white tracking-wider">LIVE</span>
+          </motion.div>
+        </motion.div>
+
+        {/* Set Indicator */}
+        <div className="text-center pt-2">
+          <motion.span 
+            key={currentSet}
+            initial={{ scale: 1.2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="inline-block px-4 py-1 bg-gray-700/80 rounded-full text-sm font-medium text-gray-300 border border-gray-600"
+          >
+            SET {currentSet}
+          </motion.span>
+        </div>
+      </div>
+
       {/* Main Score Display */}
-      <div className="p-4">
+      <div className="p-6">
         <div className="flex items-center justify-between">
           {/* Team A */}
           <div className="flex-1 text-center">
-            {teamA?.logo_url ? (
-              <img src={teamA.logo_url} alt={teamA.name} className="w-16 h-16 rounded-full mx-auto mb-2 object-cover" />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-blue-500 mx-auto mb-2 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">A</span>
-              </div>
-            )}
-            <h3 className="font-bold text-gray-900 dark:text-white text-lg">{teamA?.name || 'Team A'}</h3>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="relative inline-block"
+            >
+              {teamA?.logo_url ? (
+                <motion.img 
+                  src={teamA.logo_url} 
+                  alt={teamA.name} 
+                  className="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-4 shadow-lg"
+                  style={{ borderColor: teamAColor }}
+                  animate={{ 
+                    boxShadow: servingTeam === 'team_a' ? [`0 0 20px ${teamAColor}`, `0 0 40px ${teamAColor}`] : 'none'
+                  }}
+                  transition={{ duration: 0.5, repeat: servingTeam === 'team_a' ? Infinity : 0, repeatType: "reverse" }}
+                />
+              ) : (
+                <motion.div 
+                  className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center border-4 shadow-lg"
+                  style={{ backgroundColor: teamAColor, borderColor: teamAColor }}
+                  animate={{ 
+                    boxShadow: servingTeam === 'team_a' ? [`0 0 20px ${teamAColor}`, `0 0 40px ${teamAColor}`] : 'none'
+                  }}
+                  transition={{ duration: 0.5, repeat: servingTeam === 'team_a' ? Infinity : 0, repeatType: "reverse" }}
+                >
+                  <span className="text-3xl font-bold text-white">A</span>
+                </motion.div>
+              )}
+              {servingTeam === 'team_a' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute -top-2 left-1/2 -translate-x-1/2"
+                >
+                  <Zap className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                </motion.div>
+              )}
+            </motion.div>
+            <h3 className="font-bold text-white text-lg tracking-tight">{teamA?.name || 'Team A'}</h3>
           </div>
 
           {/* Score */}
-          <div className="px-6">
-            <div className="text-center mb-2">
-              <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300">
-                Set {currentSet}
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className={`text-5xl font-bold ${servingTeam === 'team_a' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-300'}`}>
+          <div className="px-8">
+            <div className="flex items-center gap-6">
+              {/* Team A Score */}
+              <motion.div
+                key={`team_a_${teamAScore}_${scoreFlash === 'team_a'}`}
+                initial={scoreFlash === 'team_a' ? { scale: 1.5, color: teamAColor } : false}
+                animate={scoreFlash === 'team_a' ? { scale: 1, color: '#fff' } : { scale: 1, color: '#fff' }}
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                className={`text-6xl font-black tracking-wider ${servingTeam === 'team_a' ? 'text-white' : 'text-gray-400'}`}
+              >
                 {teamAScore}
-              </div>
-              <span className="text-3xl text-gray-400">:</span>
-              <div className={`text-5xl font-bold ${servingTeam === 'team_b' ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'}`}>
+              </motion.div>
+              
+              <span className="text-4xl text-gray-600 font-light">:</span>
+              
+              {/* Team B Score */}
+              <motion.div
+                key={`team_b_${teamBScore}_${scoreFlash === 'team_b'}`}
+                initial={scoreFlash === 'team_b' ? { scale: 1.5, color: teamBColor } : false}
+                animate={scoreFlash === 'team_b' ? { scale: 1, color: '#fff' } : { scale: 1, color: '#fff' }}
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                className={`text-6xl font-black tracking-wider ${servingTeam === 'team_b' ? 'text-white' : 'text-gray-400'}`}
+              >
                 {teamBScore}
-              </div>
+              </motion.div>
             </div>
           </div>
 
           {/* Team B */}
           <div className="flex-1 text-center">
-            {teamB?.logo_url ? (
-              <img src={teamB.logo_url} alt={teamB.name} className="w-16 h-16 rounded-full mx-auto mb-2 object-cover" />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-red-500 mx-auto mb-2 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">B</span>
-              </div>
-            )}
-            <h3 className="font-bold text-gray-900 dark:text-white text-lg">{teamB?.name || 'Team B'}</h3>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="relative inline-block"
+            >
+              {teamB?.logo_url ? (
+                <motion.img 
+                  src={teamB.logo_url} 
+                  alt={teamB.name} 
+                  className="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-4 shadow-lg"
+                  style={{ borderColor: teamBColor }}
+                  animate={{ 
+                    boxShadow: servingTeam === 'team_b' ? [`0 0 20px ${teamBColor}`, `0 0 40px ${teamBColor}`] : 'none'
+                  }}
+                  transition={{ duration: 0.5, repeat: servingTeam === 'team_b' ? Infinity : 0, repeatType: "reverse" }}
+                />
+              ) : (
+                <motion.div 
+                  className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center border-4 shadow-lg"
+                  style={{ backgroundColor: teamBColor, borderColor: teamBColor }}
+                  animate={{ 
+                    boxShadow: servingTeam === 'team_b' ? [`0 0 20px ${teamBColor}`, `0 0 40px ${teamBColor}`] : 'none'
+                  }}
+                  transition={{ duration: 0.5, repeat: servingTeam === 'team_b' ? Infinity : 0, repeatType: "reverse" }}
+                >
+                  <span className="text-3xl font-bold text-white">B</span>
+                </motion.div>
+              )}
+              {servingTeam === 'team_b' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute -top-2 left-1/2 -translate-x-1/2"
+                >
+                  <Zap className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                </motion.div>
+              )}
+            </motion.div>
+            <h3 className="font-bold text-white text-lg tracking-tight">{teamB?.name || 'Team B'}</h3>
           </div>
         </div>
       </div>
 
       {/* Score Controls */}
-      <div className="px-4 pb-4">
+      <div className="px-6 pb-4">
         <div className="grid grid-cols-2 gap-4">
           {/* Team A Score Button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02, boxShadow: `0 0 25px ${teamAColor}80` }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => handleScore('team_a')}
-            className="py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95"
+            style={{ backgroundColor: teamAColor }}
+            className="py-4 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2"
           >
+            <Zap className="w-5 h-5" />
             +1 Point
-          </button>
+          </motion.button>
 
           {/* Team B Score Button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02, boxShadow: `0 0 25px ${teamBColor}80` }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => handleScore('team_b')}
-            className="py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95"
+            style={{ backgroundColor: teamBColor }}
+            className="py-4 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2"
           >
+            <Zap className="w-5 h-5" />
             +1 Point
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* Rotation & Server Controls */}
-      <div className="px-4 pb-4">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="px-6 pb-4">
+        <div className="grid grid-cols-3 gap-3">
           {/* Rotation */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleRotate}
-            className="py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1"
+            className="py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Rotate
-          </button>
+            <RotateCcw className="w-4 h-4" />
+            <span className="hidden sm:inline">Rotate</span>
+          </motion.button>
 
           {/* Change Server */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={changeServer}
-            className="py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg shadow-sm transition-colors"
+            className="py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2"
           >
-            Change Server
-          </button>
+            <Trophy className="w-4 h-4" />
+            <span className="hidden sm:inline">Server</span>
+          </motion.button>
 
           {/* Undo */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={undoLastAction}
             disabled={undoStack.length === 0}
-            className="py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg shadow-sm transition-colors"
+            className="py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2"
           >
-            Undo
-          </button>
+            <Undo2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Undo</span>
+          </motion.button>
         </div>
       </div>
 
       {/* Team Selection */}
-      <div className="px-4 pb-4">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
-          Select active team:
+      <div className="px-6 pb-4">
+        <p className="text-xs text-gray-500 mb-3 text-center uppercase tracking-widest">
+          Active Team
         </p>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => {
-              // Set first player of team A as active
-              useGameStore.getState().setActivePosition(1, 'team_a')
-            }}
-            className={`py-2 font-medium rounded-lg transition-colors ${
+        <div className="grid grid-cols-2 gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => useGameStore.getState().setActivePosition(1, 'team_a')}
+            style={activeTeam === 'team_a' ? { backgroundColor: teamAColor } : {}}
+            className={`py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 ${
               activeTeam === 'team_a' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                ? 'text-white shadow-lg' 
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
           >
+            {activeTeam === 'team_a' && <Crown className="w-4 h-4 text-yellow-300" />}
             {teamA?.name || 'Team A'}
-          </button>
-          <button
-            onClick={() => {
-              useGameStore.getState().setActivePosition(1, 'team_b')
-            }}
-            className={`py-2 font-medium rounded-lg transition-colors ${
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => useGameStore.getState().setActivePosition(1, 'team_b')}
+            style={activeTeam === 'team_b' ? { backgroundColor: teamBColor } : {}}
+            className={`py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 ${
               activeTeam === 'team_b' 
-                ? 'bg-red-600 text-white' 
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                ? 'text-white shadow-lg' 
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
           >
+            {activeTeam === 'team_b' && <Crown className="w-4 h-4 text-yellow-300" />}
             {teamB?.name || 'Team B'}
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* Serving indicator */}
-      <div className="px-4 pb-4">
-        <div className={`text-center py-2 rounded-lg ${servingTeam === 'team_a' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
-          <span className="font-medium">
+      <div className="px-6 pb-6">
+        <motion.div 
+          initial={false}
+          animate={{ 
+            backgroundColor: servingTeam === 'team_a' ? `${teamAColor}20` : `${teamBColor}20`,
+            borderColor: servingTeam === 'team_a' ? teamAColor : teamBColor
+          }}
+          className="text-center py-3 rounded-xl border-2 transition-colors"
+        >
+          <motion.span 
+            key={servingTeam}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-bold text-white flex items-center justify-center gap-2"
+          >
+            <Zap className={`w-4 h-4 ${servingTeam === 'team_a' ? 'text-yellow-400' : 'text-yellow-400'} fill-yellow-400`} />
             {servingTeam === 'team_a' ? teamA?.name : teamB?.name} is serving
-          </span>
-        </div>
+          </motion.span>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
