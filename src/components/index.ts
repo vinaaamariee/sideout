@@ -1,5 +1,5 @@
 // UI Components
-export { default as ThemeProvider } from './ThemeProvider'
+export { ThemeProvider } from './ThemeProvider'
 
 // Court Components
 export { Court, MiniCourt } from './Court'

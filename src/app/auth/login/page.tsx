@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
@@ -8,7 +8,19 @@ import { useThemeStore } from '@/store/themeStore'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isLoading, error, clearError } = useAuthStore()
+  const { login, isLoading, error, clearError, initialize, isAuthenticated } = useAuthStore()
+  
+  // Initialize auth on mount
+  useEffect(() => {
+    initialize()
+  }, [initialize])
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, router])
   const { theme, toggleTheme } = useThemeStore()
   
   const [email, setEmail] = useState('')

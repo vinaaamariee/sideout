@@ -15,6 +15,9 @@ export async function signUp(
   password: string,
   fullName?: string
 ): Promise<{ success: boolean; user?: User; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -46,6 +49,9 @@ export async function signIn(
   email: string,
   password: string
 ): Promise<{ success: boolean; session?: Session; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -69,6 +75,9 @@ export async function signIn(
 
 // Sign out
 export async function signOut(): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const { error } = await supabase.auth.signOut()
 
@@ -85,6 +94,9 @@ export async function signOut(): Promise<{ success: boolean; error?: string }> {
 
 // Get current user
 export async function getCurrentUser(): Promise<AuthUser | null> {
+  if (!supabase) {
+    return null
+  }
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
 
@@ -113,6 +125,9 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
 // Get current session
 export async function getCurrentSession(): Promise<Session | null> {
+  if (!supabase) {
+    return null
+  }
   try {
     const { data: { session } } = await supabase.auth.getSession()
     return session
@@ -126,6 +141,9 @@ export async function getCurrentSession(): Promise<Session | null> {
 export function onAuthStateChange(
   callback: (event: string, session: Session | null) => void
 ) {
+  if (!supabase) {
+    return { data: { subscription: { unsubscribe: () => {} } } }
+  }
   return supabase.auth.onAuthStateChange(callback)
 }
 
@@ -134,6 +152,9 @@ export async function updateProfile(
   userId: string,
   updates: { full_name?: string; role?: string }
 ): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const { error } = await supabase
       .from('profiles')
@@ -155,6 +176,9 @@ export async function updateProfile(
 export async function resetPassword(
   email: string
 ): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase client not initialized' }
+  }
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,

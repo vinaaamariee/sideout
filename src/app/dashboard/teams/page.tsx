@@ -56,6 +56,11 @@ export default function TeamsPage() {
   }, [selectedTeam])
 
   const fetchTeams = async () => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setLoading(false)
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('teams')
@@ -72,6 +77,10 @@ export default function TeamsPage() {
   }
 
   const fetchPlayers = async (teamId: string) => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('players')
@@ -88,6 +97,11 @@ export default function TeamsPage() {
 
   const handleCreateTeam = async () => {
     if (!teamName.trim()) return
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setSaving(false)
+      return
+    }
 
     setSaving(true)
     try {
@@ -127,6 +141,11 @@ export default function TeamsPage() {
 
   const handleCreatePlayer = async () => {
     if (!selectedTeam || !playerName.trim() || !playerJersey) return
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setSaving(false)
+      return
+    }
 
     setSaving(true)
     try {
@@ -135,7 +154,7 @@ export default function TeamsPage() {
       // Upload photo if provided
       if (playerPhoto) {
         const playerId = crypto.randomUUID()
-        const result = await uploadImage(playerPhoto, 'player-photos', playerId)
+        const result = await uploadImage(playerPhoto, 'player-photo', playerId)
         if (result.success && result.url) {
           photoUrl = result.url
         }
@@ -168,6 +187,10 @@ export default function TeamsPage() {
 
   const handleDeleteTeam = async (teamId: string) => {
     if (!confirm('Are you sure you want to delete this team? All players will also be deleted.')) return
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return
+    }
 
     try {
       const { error } = await supabase
@@ -189,6 +212,10 @@ export default function TeamsPage() {
 
   const handleDeletePlayer = async (playerId: string) => {
     if (!confirm('Are you sure you want to delete this player?')) return
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return
+    }
 
     try {
       const { error } = await supabase

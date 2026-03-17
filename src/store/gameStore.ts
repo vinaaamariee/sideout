@@ -169,12 +169,10 @@ export const useGameStore = create<GameStore>()(
               {
                 id: uuidv4(),
                 match_id: state.matchId || '',
-                player_id: state.teamAPositions.find(p => p.position === state.teamAPositions.find(pos => 
-                  state.teamAPositions[0]?.player
-                )?.[0]?.position)?.player?.id || '',
+                player_id: state.teamAPositions[0]?.player?.id || '',
                 team_id: state.teamA?.id || '',
                 action_type: 'score_change',
-                position: state.teamAPositions.find(p => p.player)?.position || 1,
+                position: 1,
                 timestamp: new Date().toISOString(),
               },
             ],
@@ -255,7 +253,7 @@ export const useGameStore = create<GameStore>()(
 
       setTeamPositions: (team, players) => {
         const state = get()
-        const positions = players.slice(0, 6).map((player, index) => ({
+        const positions: CourtPosition[] = players.slice(0, 6).map((player, index) => ({
           position: index + 1,
           player,
           is_libero: player.is_libero,

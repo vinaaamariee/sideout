@@ -1,8 +1,7 @@
 import { createSeedClient } from "@snaplet/seed";
-import config from "./seed.config";
 
 async function main() {
-  const seed = await createSeedClient(config);
+  const seed = await createSeedClient();
 
   // This clears existing teams and creates 2 new ones with players
   await seed.teams([
