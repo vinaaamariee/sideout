@@ -306,3 +306,87 @@ export function StatButtonsPanel() {
             </div>
           )}
           {/* Position badge */}
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center">
+            <span className="text-xs font-bold text-white">{playerPosition}</span>
+          </div>
+        </motion.div>
+        <div>
+          <motion.p 
+            className="font-bold text-white text-lg"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            {activePlayer.name}
+          </motion.p>
+          <p className="text-gray-400 text-sm">
+            #{activePlayer.jersey_number} • {activePlayer.is_libero && 'Libero • '}{playerPosition}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Position-based stat buttons */}
+      <div className="space-y-4 mt-4">
+        {/* Universal - all players */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <ReceptionButtons />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <ServiceButtons />
+        </motion.div>
+
+        {/* Spikers - OH, OP, MB */}
+        {(playerPosition === 'OH' || playerPosition === 'OP' || playerPosition === 'MB') && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <AttackButtons />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <BlockButtons />
+            </motion.div>
+          </>
+        )}
+
+        {/* Setters */}
+        {playerPosition === 'S' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <SetterButtons />
+          </motion.div>
+        )}
+
+        {/* Liberos */}
+        {playerPosition === 'L' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <DigButtons />
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+export default StatButtonsPanel

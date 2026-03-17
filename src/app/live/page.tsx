@@ -22,20 +22,18 @@ export default function LiveViewerPage() {
     fetchLiveMatches()
     
     // Subscribe to realtime updates
-    let channel: ReturnType<typeof supabase.channel> | null = null
-    if (supabase) {
-      channel = supabase
-        .channel('live-matches')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-          fetchLiveMatches()
-        })
-        .subscribe()
-    }
+    const supabaseClient = supabase
+    if (!supabaseClient) return
+
+    const channel = supabaseClient
+      .channel('live-matches')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        fetchLiveMatches()
+      })
+      .subscribe()
 
     return () => {
-      if (channel && supabase) {
-        supabase.removeChannel(channel)
-      }
+      supabaseClient.removeChannel(channel)
     }
   }, [])
 
